@@ -9,23 +9,35 @@ defmodule TcpBroker.BlockingQueue do
     {:ok, state}
   end
 
-  def handle_call({:test, msg}, from, state) do
 
-    IO.puts("start: #{msg} time: #{Time.utc_now()}")
-    Process.sleep(15000)
-    IO.puts("reply: #{msg} #{state} time: #{Time.utc_now()}")
-
-    {:reply, msg, state}
+  def put(pid, value) do
+    GenServer.cast(pid, {:put, value})
   end
 
+  def get(pid) do
+    case GenServer.call(pid, :get) do
+      :block -> get(pid)
+      {:value, value}->value
+    end
+  end
 
 
   def handle_cast({:put, value}, state) do
-    {:noreply, [value | state]}
+    new_state = _put(state, value)
+    IO.inspect(new_state)
+    {:noreply, new_state}
   end
 
-  def handle_call(:get, _from, [value | state]) do
-    {:reply, value, state}
+
+  def handle_call(:get, from, []) do
+    {:reply, :block, []}
   end
+  def handle_call(:get, from, [value | new_state]) do
+    {:reply, {:value, value}, new_state}
+  end
+
+
+  defp _put([], value), do: [value|[]]
+  defp _put([h|t], value), do: [h|_put(t, value)]
 
 end
