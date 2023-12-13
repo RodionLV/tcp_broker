@@ -1,40 +1,39 @@
 defmodule TcpBroker.BlockingQueue do
   use GenServer
 
-  def start_link(state \\ []) do
+  def start_link(state \\ {[], []}) do
     GenServer.start_link(__MODULE__, state)
   end
 
-  def init(state) do
-    {:ok, state}
-  end
+  def init(state), do: {:ok, state}
+
+  def put(pid, value), do: GenServer.cast(pid, {:put, value})
+
+  def get(pid), do: GenServer.call(pid, :get, :infinity)
 
 
-  def put(pid, value) do
-    GenServer.cast(pid, {:put, value})
-  end
 
-  def get(pid) do
-    case GenServer.call(pid, :get) do
-      :block -> get(pid)
-      {:value, value}->value
-    end
-  end
-
-
-  def handle_cast({:put, value}, state) do
+  def handle_cast({:put, value}, {state, []}) do
     new_state = _put(state, value)
-    IO.inspect(new_state)
-    {:noreply, new_state}
+
+    {:noreply, {new_state, []}}
+  end
+  def handle_cast({:put, new_value}, {state, [client | other]}) do
+    [value | new_state] = _put(state, new_value)
+
+    GenServer.reply(client, {:value, value})
+
+    {:noreply, {state, new_state}}
   end
 
 
-  def handle_call(:get, from, []) do
-    {:reply, :block, []}
+  def handle_call(:get, from, { [], wait }) do
+    {:noreply, {[], [from | wait]}}
   end
-  def handle_call(:get, from, [value | new_state]) do
-    {:reply, {:value, value}, new_state}
+  def handle_call(:get, from, { [value | new_state], wait }) do
+    {:reply, {:value, value}, {new_state, wait}}
   end
+
 
 
   defp _put([], value), do: [value|[]]
