@@ -7,7 +7,14 @@ defmodule TcpBroker.MixProject do
       version: "0.1.0",
       elixir: "~> 1.16-rc",
       start_permanent: Mix.env() == :prod,
+      escript: escript_config(),
       deps: deps()
+    ]
+  end
+
+  def escript_config do
+    [
+      main_module: TcpBroker.Client
     ]
   end
 

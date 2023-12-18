@@ -5,7 +5,10 @@ defmodule TcpBroker.BlockingQueue do
     GenServer.start_link(__MODULE__, state)
   end
 
-  def init(state), do: {:ok, state}
+  def init(state) do
+    IO.puts("Starting BlockingQueue")
+    {:ok, state}
+  end
 
   def put(pid, value), do: GenServer.cast(pid, {:put, value})
 
