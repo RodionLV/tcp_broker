@@ -34,7 +34,6 @@ defmodule TcpBroker.Server do
     Logger.info("Socket is connected on port #{inspect(client)}")
 
     spawn fn->
-      Process.flag(:trap_exit, true)
       serve(client)
     end
     loop_accept(socket)
@@ -43,8 +42,13 @@ defmodule TcpBroker.Server do
   defp serve(socket) do
     case :gen_tcp.recv(socket, 2) do
       {:ok, data}->
-
-        serve(socket)
+        case data do
+          "type"<>" "<>"sendler"->TcpBroker.Sendler.accept(socket)
+          "type"<>" "<>"receiver"->TcpBroker.Receiver.accept(socket)
+          _->
+            :gen_tcp.send(socket, "isn't valid type")
+            serve(socket)
+        end
       {:error, reason}->
         Logger.info("Socket terminating: #{reason}")
     end
