@@ -40,13 +40,15 @@ defmodule TcpBroker.Server do
   end
 
   defp serve(socket) do
-    case :gen_tcp.recv(socket, 2) do
+    case :gen_tcp.recv(socket, 0) do
       {:ok, data}->
-        case data do
-          "type"<>" "<>"sendler"->TcpBroker.Sendler.accept(socket)
-          "type"<>" "<>"receiver"->TcpBroker.Receiver.accept(socket)
+        case String.trim(data) do
+          "send"<>" "<>topic->
+            TcpBroker.Sendler.accept(socket, topic)
+          "receive"<>" "<>topic->
+            TcpBroker.Receiver.accept(socket, topic)
           _->
-            :gen_tcp.send(socket, "isn't valid type")
+            :gen_tcp.send(socket, "isn't valid type\n")
             serve(socket)
         end
       {:error, reason}->
