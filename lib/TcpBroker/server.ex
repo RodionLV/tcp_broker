@@ -13,7 +13,7 @@ defmodule TcpBroker.Server do
   end
 
   def accept(port) do
-    spawn(fn->listen(port)end)
+    spawn_link(fn->listen(port)end)
   end
 
 

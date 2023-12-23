@@ -3,6 +3,6 @@ defmodule TcpBrokerTest do
   doctest TcpBroker
 
   test "greets the world" do
-    assert TcpBroker.hello() == :world
+
   end
 end

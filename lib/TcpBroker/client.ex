@@ -1,6 +1,6 @@
 defmodule TcpBroker.Client do
 
-  def main(args) do
+  def main(_args) do
     IO.puts("test")
   end
 
